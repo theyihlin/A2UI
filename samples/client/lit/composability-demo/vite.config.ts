@@ -70,7 +70,8 @@ export default {
     dedupe: ['lit'],
     alias: {
       '@a2ui/markdown-it': resolve(__dirname, '../../../renderers/markdown/markdown-it/dist/src/markdown.js'),
-      'sandbox.js': resolve(__dirname, '../../' + SANDBOX_ENTRY_NAME + '.ts')
+      'sandbox.js': resolve(__dirname, '../../' + SANDBOX_ENTRY_NAME + '.ts'),
+      '@modelcontextprotocol/ext-apps/app-bridge': resolve(__dirname, '../node_modules/@modelcontextprotocol/ext-apps/dist/src/app-bridge.js')
     }
   }
 } satisfies UserConfig;
