@@ -62,7 +62,7 @@ export default {
     port: 8000,
     host: true,
     fs: {
-      allow: ['../../../', './']
+      allow: ['../../../../', './']
     }
   },
   resolve: {
