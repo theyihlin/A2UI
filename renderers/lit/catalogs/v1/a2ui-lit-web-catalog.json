@@ -23,6 +23,17 @@
       },
       "required": ["component", "child", "action"]
     },
+    "LocalWidget": {
+      "type": "object",
+      "properties": {
+        "component": { "const": "LocalWidget" }
+      },
+      "required": ["component"],
+      "x-a2ui-component": {
+        "uri": "http://localhost:8000/components/a2ui-local-widget.js",
+        "sri": "sha384-zSvbnlp7FOJZzrD4td51PoNk1H2Q8tagFTFdw02Ytu8Ym5u6xMl0lcZtZIxuXYMY"
+      }
+    },
     "McpApp": {
       "type": "object",
       "properties": {

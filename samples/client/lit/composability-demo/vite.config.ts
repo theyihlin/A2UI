@@ -26,22 +26,27 @@ const SANDBOX_ENTRY_NAME = `${SANDBOX_BASE_PATH}sandbox`;
 export default {
   plugins: [
     {
-      name: 'serve-sandbox',
+      name: 'serve-sandbox-and-web',
       configureServer(server) {
         server.middlewares.use((req, _res, next) => {
-          if (req.url?.includes(`/${SANDBOX_BASE_PATH}`)) {
-            // Route requests under shared/mcp_apps_inner_iframe to samples/client/shared/
-            const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
+          const url = req.url || '';
+          
+          // 1. Intercept and serve shared double-sandbox proxy
+          if (url.includes(`/${SANDBOX_BASE_PATH}`)) {
+            const pathname = new URL(url, `http://${req.headers.host}`).pathname;
             let targetPath = pathname.slice(1);
-            
-            // Normalize script compiled targets back to ts source
             if (targetPath.endsWith('.js')) {
               targetPath = targetPath.slice(0, -3) + '.ts';
             }
-            
-            // Resolve relative to samples/client
             req.url = '/@fs' + resolve(__dirname, '../../' + targetPath);
           }
+          
+          // 2. Intercept and serve shared dynamic web components
+          if (url.startsWith('/web/')) {
+            const pathname = new URL(url, `http://${req.headers.host}`).pathname;
+            req.url = '/@fs' + resolve(__dirname, '../../../../' + pathname.slice(1));
+          }
+          
           next();
         });
       }
