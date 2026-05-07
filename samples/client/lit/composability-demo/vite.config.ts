@@ -61,6 +61,7 @@ export default {
   server: {
     port: 8000,
     host: true,
+    cors: true, // ENABLE CORS HEADERS FOR SECURE BROWSER SRI SCRIPT CHECKS
     fs: {
       allow: ['../../../../', './']
     }
