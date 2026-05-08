@@ -41,31 +41,26 @@ function log(msg: string, type: 'info' | 'success' | 'error' | 'warn' = 'info') 
 // --- COMPILE-TIME STATIC CATALOG BUNDLINGS ---
 log('Statically pre-compiling and packaging catalogs...', 'info');
 
-// 1. Basic Catalog: only primitives
+// 1. Basic Catalog: all standard primitives
 const clientBasicCatalog = new Catalog(
   'https://a2ui.org/catalogs/v1/basic-catalog.json',
-  [
-    basicCatalog.components.get('Text')!,
-    basicCatalog.components.get('Button')!
-  ]
+  Array.from(basicCatalog.components.values())
 );
 
-// 2. Weather Catalog: primitives + LocalWeatherWidget
+// 2. Weather Catalog: all primitives + LocalWeatherWidget
 const clientWeatherCatalog = new Catalog(
   'https://a2ui.org/catalogs/v1/weather-catalog.json',
   [
-    basicCatalog.components.get('Text')!,
-    basicCatalog.components.get('Button')!,
+    ...Array.from(basicCatalog.components.values()),
     LocalWidget as any
   ]
 );
 
-// 3. Generative MCP Catalog: primitives + McpApp iframe sandbox
+// 3. Generative MCP Catalog: all primitives + McpApp iframe sandbox
 const clientMcpCatalog = new Catalog(
   'https://a2ui.org/catalogs/v1/mcp-catalog.json',
   [
-    basicCatalog.components.get('Text')!,
-    basicCatalog.components.get('Button')!,
+    ...Array.from(basicCatalog.components.values()),
     McpApp as any
   ]
 );
@@ -81,6 +76,40 @@ const catalogMap: Record<CatalogKey, Catalog<any>> = {
   weather: clientWeatherCatalog,
   mcp: clientMcpCatalog
 };
+
+// --- JSON Schema Generator Helper ---
+function generateCatalogJson(catalog: Catalog<any>) {
+  const components: Record<string, any> = {};
+  for (const name of catalog.components.keys()) {
+    components[name] = {
+      type: 'object',
+      properties: {
+        component: { const: name },
+        ...(name === 'LocalWidget' ? {
+          // Custom Weather Widget schema
+          location: { type: 'string', default: 'San Francisco, CA' }
+        } : name === 'McpApp' ? {
+          // McpApp custom properties schema
+          resourceUri: { type: 'string' },
+          allowedTools: { type: 'array', items: { type: 'string' } },
+          htmlContent: { type: 'string' }
+        } : {
+          // Standard primitives properties placeholder
+          properties: { type: 'object' }
+        })
+      },
+      required: ['component']
+    };
+  }
+
+  return {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: catalog.id,
+    title: (catalog.id.split('/').pop()?.replace('.json', '') || '') + ' schema',
+    catalogId: catalog.id,
+    components
+  };
+}
 
 // --- Reactive UI Ingesting ---
 
@@ -126,6 +155,11 @@ function ingestCatalog(key: CatalogKey) {
 
   // 3. Reactively re-render Dynamic Surface Card
   renderActiveSurface(key, catalog);
+
+  // 4. Update Catalog JSON Schema Viewer
+  const catalogJson = generateCatalogJson(catalog);
+  const jsonViewer = document.getElementById('catalog-json-viewer')!;
+  jsonViewer.textContent = JSON.stringify(catalogJson, null, 2);
 }
 
 // --- Surface Renderers ---
