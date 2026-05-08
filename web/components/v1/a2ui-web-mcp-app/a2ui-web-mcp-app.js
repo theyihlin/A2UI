@@ -115,7 +115,7 @@ class A2uiWebMcpApp extends HTMLElement {
     }
 
     // 1. Set up standard local sandbox proxy path
-    const sandboxUrl = `${window.location.origin}/shared/mcp_apps_inner_iframe/sandbox.html`;
+    const sandboxUrl = `${window.location.origin}/shared/mcp_apps_inner_iframe/sandbox.html?disable_security_self_test=true`;
 
     const readyNotification = 'ui/notifications/sandbox-proxy-ready';
 

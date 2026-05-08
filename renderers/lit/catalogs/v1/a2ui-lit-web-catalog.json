@@ -46,7 +46,7 @@
       "required": ["component"],
       "x-a2ui-component": {
         "uri": "http://localhost:8000/web/components/v1/a2ui-web-mcp-app/a2ui-web-mcp-app.js",
-        "sri": "sha384-owGkGIiV7CHb+k4p0cwzbxMmVVOT7DCkghXniE8sXWAv1vfL6xEw3bIdWkaDkdP4"
+        "sri": "sha384-XE9IcQtnmN06CkimVKe5+X4Vz5La1qP+gMeH6vu44Ixwecv3YHqCKTfmtl6jqzPE"
       }
     }
   }
