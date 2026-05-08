@@ -38,122 +38,181 @@ function log(msg: string, type: 'info' | 'success' | 'error' | 'warn' = 'info') 
   consoleEl.scrollTop = consoleEl.scrollHeight;
 }
 
-// --- COMPILE-TIME STATIC CATALOG INGESTION ---
-log('Ingesting composed client catalog at compile-time...', 'info');
+// --- COMPILE-TIME STATIC CATALOG BUNDLINGS ---
+log('Statically pre-compiling and packaging catalogs...', 'info');
 
-const clientCatalog = new Catalog(
-  'https://a2ui.org/renderers/lit/catalogs/v1/a2ui-lit-web-catalog.json',
+// 1. Basic Catalog: only primitives
+const clientBasicCatalog = new Catalog(
+  'https://a2ui.org/catalogs/v1/basic-catalog.json',
   [
-    ...Array.from(basicCatalog.components.values()),
-    LocalWidget as any,
-    McpApp as any
-  ],
-  [
-    ...Array.from(basicCatalog.functions.values())
+    basicCatalog.components.get('Text')!,
+    basicCatalog.components.get('Button')!
   ]
 );
 
-log(`Composed catalog loaded. Pre-registered: [LocalWidget, McpApp] alongside ${basicCatalog.components.size} standard elements.`, 'success');
+// 2. Weather Catalog: primitives + LocalWeatherWidget
+const clientWeatherCatalog = new Catalog(
+  'https://a2ui.org/catalogs/v1/weather-catalog.json',
+  [
+    basicCatalog.components.get('Text')!,
+    basicCatalog.components.get('Button')!,
+    LocalWidget as any
+  ]
+);
 
-// Track registration badges
-['local-status', 'mcp-status'].forEach(id => {
-  const badge = document.getElementById(id);
-  if (badge) {
-    badge.textContent = 'Ready';
-    badge.className = 'badge badge-loaded';
-  }
-});
+// 3. Generative MCP Catalog: primitives + McpApp iframe sandbox
+const clientMcpCatalog = new Catalog(
+  'https://a2ui.org/catalogs/v1/mcp-catalog.json',
+  [
+    basicCatalog.components.get('Text')!,
+    basicCatalog.components.get('Button')!,
+    McpApp as any
+  ]
+);
 
-// --- Setup Surfaces ---
+log('Statically pre-registered 3 distinct catalogs in Swift/iOS compile-time style.', 'success');
 
-function renderSurfaceA() {
-  // Surface A: Primitives (Text and Button)
-  const surfaceModel = new SurfaceModel('surface-a', clientCatalog as any);
-  
-  // Add Title component
-  surfaceModel.componentsModel.addComponent(new ComponentModel('title-comp', 'Text', {
-    text: 'Standard Catalog Elements',
-    variant: 'h3'
-  }));
+// --- State & Persistence Management ---
+type CatalogKey = 'basic' | 'weather' | 'mcp';
+let activeCatalogKey: CatalogKey = (localStorage.getItem('active_catalog_key') as CatalogKey) || 'basic';
 
-  // Add Button component
-  surfaceModel.componentsModel.addComponent(new ComponentModel('btn-comp', 'Button', {
-    child: 'btn-label',
-    action: { event: { name: 'standard_button_click' } }
-  }));
-  surfaceModel.componentsModel.addComponent(new ComponentModel('btn-label', 'Text', {
-    text: 'Interactive Action Button'
-  }));
+const catalogMap: Record<CatalogKey, Catalog<any>> = {
+  basic: clientBasicCatalog,
+  weather: clientWeatherCatalog,
+  mcp: clientMcpCatalog
+};
 
-  const container = document.getElementById('surface-a')!;
-  
-  // Render node Text
-  const ctxText = new ComponentContext(surfaceModel, 'title-comp');
-  const ctxBtn = new ComponentContext(surfaceModel, 'btn-comp');
+// --- Reactive UI Ingesting ---
 
-  render(html`
-    ${renderA2uiNode(ctxText, clientCatalog as any)}
-    <div style="margin-top: 12px;">
-      ${renderA2uiNode(ctxBtn, clientCatalog as any)}
-    </div>
-  `, container);
+function ingestCatalog(key: CatalogKey) {
+  activeCatalogKey = key;
+  localStorage.setItem('active_catalog_key', key);
+  const catalog = catalogMap[key];
 
-  surfaceModel.onAction.subscribe((action) => {
-    log(`[Action Dispatch] Standard Button Action received: ${JSON.stringify(action)}`, 'success');
+  log(`[Ingestion] Active catalog set to: ${catalog.id}`, 'info');
+  log(`[Registry] Instantly registered ${catalog.components.size} components. Ready to render!`, 'success');
+
+  // 1. Update Selector Button classes
+  const buttons: Record<CatalogKey, HTMLElement> = {
+    basic: document.getElementById('btn-basic-catalog')!,
+    weather: document.getElementById('btn-weather-catalog')!,
+    mcp: document.getElementById('btn-mcp-catalog')!
+  };
+
+  Object.keys(buttons).forEach((k) => {
+    const btn = buttons[k as CatalogKey];
+    if (k === key) {
+      btn.className = 'btn btn-primary';
+    } else {
+      btn.className = 'btn btn-secondary';
+    }
   });
+
+  // 2. Reactively re-build Component registry monitor list
+  const registryList = document.getElementById('availability-list')!;
+  const components = Array.from(catalog.components.keys());
+  
+  render(
+    html`
+      ${components.map(name => html`
+        <div class="status-item">
+          <span>${name}</span>
+          <span class="badge badge-loaded">Ready</span>
+        </div>
+      `)}
+    `,
+    registryList
+  );
+
+  // 3. Reactively re-render Dynamic Surface Card
+  renderActiveSurface(key, catalog);
 }
 
-async function renderSurfaceB() {
-  const container = document.getElementById('surface-b')!;
-  const badge = document.getElementById('surface-b-badge')!;
+// --- Surface Renderers ---
 
-  try {
-    const surfaceModel = new SurfaceModel('surface-b', clientCatalog as any);
+function renderActiveSurface(key: CatalogKey, catalog: Catalog<any>) {
+  const container = document.getElementById('dynamic-surface-container')!;
+
+  if (key === 'basic') {
+    const surfaceModel = new SurfaceModel('surface-a', catalog as any);
+    surfaceModel.componentsModel.addComponent(new ComponentModel('title-comp', 'Text', {
+      text: 'Statically Ingested Basic Primitives',
+      variant: 'h3'
+    }));
+    surfaceModel.componentsModel.addComponent(new ComponentModel('btn-comp', 'Button', {
+      child: 'btn-label',
+      action: { event: { name: 'standard_button_click' } }
+    }));
+    surfaceModel.componentsModel.addComponent(new ComponentModel('btn-label', 'Text', {
+      text: 'Action Call Button'
+    }));
+
+    surfaceModel.onAction.subscribe((action) => {
+      log(`[Action Dispatch] Standard Button clicked: ${JSON.stringify(action)}`, 'success');
+    });
+
+    const ctxText = new ComponentContext(surfaceModel, 'title-comp');
+    const ctxBtn = new ComponentContext(surfaceModel, 'btn-comp');
+
+    render(
+      html`
+        <div class="card">
+          <div class="card-title">
+            <span>Active Surface: Standard Primitives</span>
+            <span style="font-size:12px; color:var(--success-color);">Active</span>
+          </div>
+          <div class="card-body" style="padding: 28px;">
+            ${renderA2uiNode(ctxText, catalog as any)}
+            <div style="margin-top: 16px;">
+              ${renderA2uiNode(ctxBtn, catalog as any)}
+            </div>
+          </div>
+        </div>
+      `,
+      container
+    );
+  }
+
+  if (key === 'weather') {
+    const surfaceModel = new SurfaceModel('surface-b', catalog as any);
     surfaceModel.componentsModel.addComponent(new ComponentModel('local-widget-comp', 'LocalWidget', {}));
     
     surfaceModel.onAction.subscribe((action) => {
-      log(`[Action Dispatch] Local Widget click action: ${JSON.stringify(action)}`, 'success');
+      log(`[Action Dispatch] Weather Refresh clicked: ${JSON.stringify(action)}`, 'success');
       
-      if (action.name === 'local_widget_click') {
-        // Render simulated agent success panel
+      if (action.name === 'refresh_weather') {
+        // Render simulated success panel
         const prevResult = container.querySelector('.agent-result');
         if (prevResult) prevResult.remove();
 
         const resultEl = document.createElement('div');
         resultEl.className = 'agent-result';
-        resultEl.style.cssText = 'margin: 16px 28px; padding: 16px; background: rgba(99, 102, 241, 0.08); border: 1px solid var(--primary-color); border-radius: 12px; color: #a5b4fc; font-size: 14px; font-weight: 600; text-align: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(99,102,241,0.15);';
-        resultEl.innerHTML = `⚡ Agent Response: local_widget_click action received successfully!`;
-        container.appendChild(resultEl);
+        resultEl.style.cssText = 'margin: 20px 28px 28px 28px; padding: 16px; background: rgba(99, 102, 241, 0.08); border: 1px solid var(--primary-color); border-radius: 12px; color: #a5b4fc; font-size: 13px; font-weight: 600; text-align: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(99,102,241,0.15);';
+        resultEl.innerHTML = `⚡ Agent Simulation: Weather refresh complete! (SF forecasts updated)`;
+        container.querySelector('.card')!.appendChild(resultEl);
       }
     });
 
     const ctx = new ComponentContext(surfaceModel, 'local-widget-comp');
     
-    // Attempt rendering - immediately ready since it is pre-registered!
-    const template = renderA2uiNode(ctx, clientCatalog as any);
-    render(template, container);
-
-    badge.textContent = 'Active';
-    badge.style.color = 'var(--success-color)';
-  } catch (err: any) {
-    badge.textContent = 'Blocked';
-    badge.style.color = 'var(--error-color)';
-    render(html`
-      <div style="padding: 16px; border: 1px dashed var(--error-color); border-radius: 12px; color: var(--error-color); font-size: 14px; font-weight: 500; background: rgba(239, 68, 68, 0.05);">
-        ❌ Dynamic component load blocked: ${err.message}
-      </div>
-    `, container);
+    render(
+      html`
+        <div class="card">
+          <div class="card-title">
+            <span>Active Surface: Weather Showcase</span>
+            <span style="font-size:12px; color:var(--success-color);">Active</span>
+          </div>
+          <div class="card-body">
+            ${renderA2uiNode(ctx, catalog as any)}
+          </div>
+        </div>
+      `,
+      container
+    );
   }
-}
 
-async function renderSurfaceC() {
-  const container = document.getElementById('surface-c')!;
-  const badge = document.getElementById('surface-c-badge')!;
-
-  try {
-    const surfaceModel = new SurfaceModel('surface-c', clientCatalog as any);
-    
-    // Statically loaded component McpApp containing a calculator app HTML
+  if (key === 'mcp') {
+    const surfaceModel = new SurfaceModel('surface-c', catalog as any);
     surfaceModel.componentsModel.addComponent(new ComponentModel('mcp-app-comp', 'McpApp', {
       resourceUri: 'http://localhost:8000/components/mcp-app.js',
       allowedTools: ['calculate_sum'],
@@ -189,69 +248,58 @@ async function renderSurfaceC() {
         const sum = (Number(x) || 0) + (Number(y) || 0);
         log(`[Agent Simulator] Computing tool call: calculate_sum(${x}, ${y}) = ${sum}`, 'info');
 
-        // Render simulated agent success panel
+        // Render simulated success panel
         const prevResult = container.querySelector('.agent-result');
         if (prevResult) prevResult.remove();
 
         const resultEl = document.createElement('div');
         resultEl.className = 'agent-result';
-        resultEl.style.cssText = 'margin: 16px 28px; padding: 16px; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success-color); border-radius: 12px; color: var(--success-color); font-size: 14px; font-weight: 600; text-align: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(16,185,129,0.15);';
+        resultEl.style.cssText = 'margin: 20px 28px 28px 28px; padding: 16px; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success-color); border-radius: 12px; color: var(--success-color); font-size: 13px; font-weight: 600; text-align: center; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 12px rgba(16,185,129,0.15);';
         resultEl.innerHTML = `✓ Agent Simulated Tool Success: calculate_sum(${x}, ${y}) = ${sum}`;
-        container.appendChild(resultEl);
+        container.querySelector('.card')!.appendChild(resultEl);
       }
     });
 
     const ctx = new ComponentContext(surfaceModel, 'mcp-app-comp');
     
-    // Render immediately!
-    const template = renderA2uiNode(ctx, clientCatalog as any);
-    render(template, container);
-
-    badge.textContent = 'Active';
-    badge.style.color = 'var(--success-color)';
-  } catch (err: any) {
-    badge.textContent = 'Blocked';
-    badge.style.color = 'var(--error-color)';
-    render(html`
-      <div style="padding: 16px; border: 1px dashed var(--error-color); border-radius: 12px; color: var(--error-color); font-size: 14px; font-weight: 500; background: rgba(239, 68, 68, 0.05);">
-        ❌ Dynamic component load blocked: ${err.message}
-      </div>
-    `, container);
+    render(
+      html`
+        <div class="card">
+          <div class="card-title">
+            <span>Active Surface: MCP App Sandbox</span>
+            <span style="font-size:12px; color:var(--success-color);">Active</span>
+          </div>
+          <div class="card-body">
+            ${renderA2uiNode(ctx, catalog as any)}
+          </div>
+        </div>
+      `,
+      container
+    );
   }
 }
 
-// --- Initial boot rendering ---
-log('Running compile-time surface instantiation...', 'info');
-renderSurfaceA();
-renderSurfaceB();
-renderSurfaceC();
+// --- Initial Boot & Restoration ---
+log(`Restoring previous session from localStorage: [${activeCatalogKey}]`, 'info');
+ingestCatalog(activeCatalogKey);
 
-// --- Handle Controls Events ---
+// --- Handle Catalog Ingestion Clicks ---
 
-// Strict/Development Switch (Compile-time showcase)
-const securityToggle = document.getElementById('security-toggle') as HTMLInputElement;
-securityToggle.onchange = () => {
-  const isChecked = securityToggle.checked;
-  log(`Strict boundary check toggled ${isChecked ? 'ON' : 'OFF'}.`, 'info');
-  log('Compile-time components bypass active. All pre-registered views persist instantly.', 'success');
-  renderSurfaceB();
-  renderSurfaceC();
+const btnBasic = document.getElementById('btn-basic-catalog') as HTMLButtonElement;
+const btnWeather = document.getElementById('btn-weather-catalog') as HTMLButtonElement;
+const btnMcp = document.getElementById('btn-mcp-catalog') as HTMLButtonElement;
+
+btnBasic.onclick = () => {
+  log('[Ingestion] Ingesting basic primitive catalog...', 'info');
+  ingestCatalog('basic');
 };
 
-// Simulated Bundler Trigger
-const preloadBtn = document.getElementById('preload-btn') as HTMLButtonElement;
-preloadBtn.onclick = async () => {
-  log('[Compile-Time Bundler] Simulating compile-time dependency scan...', 'info');
-  preloadBtn.disabled = true;
-  preloadBtn.textContent = 'Scanning...';
+btnWeather.onclick = () => {
+  log('[Ingestion] Ingesting local custom weather catalog...', 'info');
+  ingestCatalog('weather');
+};
 
-  setTimeout(() => {
-    log('[Compile-Time Bundler] Dependency scan success. 2 custom components statically pre-bundled!', 'success');
-    preloadBtn.disabled = false;
-    preloadBtn.textContent = 'Simulate Build-Time Bundling';
-    
-    // Refresh layout
-    renderSurfaceB();
-    renderSurfaceC();
-  }, 800);
+btnMcp.onclick = () => {
+  log('[Ingestion] Ingesting generative MCP iframe catalog...', 'info');
+  ingestCatalog('mcp');
 };
