@@ -1175,15 +1175,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ii-standard-component-catalog-checklist" class="md-nav__link">
+  <a href="#ii-basic-component-catalog-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        II. Standard Component Catalog Checklist
+        II. Basic Component Catalog Checklist
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="II. Standard Component Catalog Checklist">
+    <nav class="md-nav" aria-label="II. Basic Component Catalog Checklist">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2178,15 +2178,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ii-standard-component-catalog-checklist" class="md-nav__link">
+  <a href="#ii-basic-component-catalog-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        II. Standard Component Catalog Checklist
+        II. Basic Component Catalog Checklist
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="II. Standard Component Catalog Checklist">
+    <nav class="md-nav" aria-label="II. Basic Component Catalog Checklist">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2406,7 +2406,7 @@
 <li>Buffer all incoming <code>surfaceUpdate</code> and <code>dataModelUpdate</code> messages without rendering immediately.</li>
 <li>Handle <code>beginRendering</code>: This message acts as the explicit signal to perform the initial render of a surface and set the root component ID.<ul>
 <li>Start rendering from the specified <code>root</code> component ID.</li>
-<li>If a <code>catalogId</code> is provided, ensure the corresponding component catalog is used (defaulting to the standard catalog if omitted).</li>
+<li>If a <code>catalogId</code> is provided, ensure the corresponding component catalog is used (defaulting to the basic catalog if omitted).</li>
 <li>Apply any global <code>styles</code> (e.g., <code>font</code>, <code>primaryColor</code>) provided in this message.</li>
 </ul>
 </li>
@@ -2428,24 +2428,24 @@
 <li>Send the complete <code>userAction</code> object to the server's event handling endpoint.</li>
 <li><strong>Client Capabilities Reporting</strong>:</li>
 <li>In <strong>every</strong> A2A message sent to the server (as part of the metadata), include an <code>a2uiClientCapabilities</code> object.</li>
-<li>This object should declare the component catalog your client supports via <code>supportedCatalogIds</code> (e.g., including the URI for the standard 0.8 catalog).</li>
+<li>This object should declare the component catalog your client supports via <code>supportedCatalogIds</code> (e.g., including the URI for the basic 0.8 catalog).</li>
 <li>Optionally, if the server supports it, provide <code>inlineCatalogs</code> for custom, on-the-fly component definitions.</li>
 <li><strong>Error Reporting</strong>: Implement a mechanism to send an <code>error</code> message to the server to report any client-side errors (e.g., failed data binding, unknown component type).</li>
 </ul>
-<h2 id="ii-standard-component-catalog-checklist">II. Standard Component Catalog Checklist<a class="headerlink" href="#ii-standard-component-catalog-checklist" title="Permanent link">&para;</a></h2>
-<p>To ensure a consistent user experience across platforms, A2UI defines a standard set of components. Your client should map these abstract definitions to their corresponding native UI widgets.</p>
+<h2 id="ii-basic-component-catalog-checklist">II. Basic Component Catalog Checklist<a class="headerlink" href="#ii-basic-component-catalog-checklist" title="Permanent link">&para;</a></h2>
+<p>To ensure a consistent user experience across platforms, A2UI defines a basic set of components. Your client should map these abstract definitions to their corresponding native UI widgets.</p>
 <h3 id="basic-content">Basic Content<a class="headerlink" href="#basic-content" title="Permanent link">&para;</a></h3>
-<p>The standard catalog includes the following basic content components:</p>
+<p>The basic catalog includes the following basic content components:</p>
 <ul>
 <li><strong>Text</strong>: Render text content. Must support data binding on <code>text</code> and a <code>usageHint</code> for styling (h1-h5, body, caption).</li>
 <li><strong>Image</strong>: Render an image from a URL. Must support <code>fit</code> (cover, contain, etc.) and <code>usageHint</code> (avatar, hero, etc.) properties.</li>
-<li><strong>Icon</strong>: Render a predefined icon from the standard set specified in the catalog.</li>
+<li><strong>Icon</strong>: Render a predefined icon from the basic set specified in the catalog.</li>
 <li><strong>Video</strong>: Render a video player for a given URL.</li>
 <li><strong>AudioPlayer</strong>: Render an audio player for a given URL, optionally with a description.</li>
 <li><strong>Divider</strong>: Render a visual separator, supporting both <code>horizontal</code> and <code>vertical</code> axes.</li>
 </ul>
 <h3 id="layout-containers">Layout &amp; Containers<a class="headerlink" href="#layout-containers" title="Permanent link">&para;</a></h3>
-<p>The standard catalog includes the following layout and container components:</p>
+<p>The basic catalog includes the following layout and container components:</p>
 <ul>
 <li><strong>Row</strong>: Arrange children horizontally. Must support <code>distribution</code> (justify-content) and <code>alignment</code> (align-items). Children can have a <code>weight</code> property to control flex-grow behavior.</li>
 <li><strong>Column</strong>: Arrange children vertically. Must support <code>distribution</code> and <code>alignment</code>. Children can have a <code>weight</code> property to control flex-grow behavior.</li>
@@ -2455,7 +2455,7 @@
 <li><strong>Modal</strong>: A dialog that appears on top of the main content. It is triggered by an <code>entryPointChild</code> (e.g. a button) and displays the <code>contentChild</code> when activated.</li>
 </ul>
 <h3 id="interactive-input-components">Interactive &amp; Input Components<a class="headerlink" href="#interactive-input-components" title="Permanent link">&para;</a></h3>
-<p>The standard catalog includes the following interactive and input components:</p>
+<p>The basic catalog includes the following interactive and input components:</p>
 <ul>
 <li><strong>Button</strong>: A clickable element that triggers a <code>userAction</code>. Must be able to contain a <code>child</code> component (typically Text or Icon) and may vary in style based on the <code>primary</code> boolean.</li>
 <li><strong>CheckBox</strong>: A checkbox that can be toggled, reflecting a boolean value.</li>
