@@ -4,8 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "compile": "node scripts/compile-catalogs.js",
+    "dev": "npm run compile && vite",
+    "build": "npm run compile && tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
