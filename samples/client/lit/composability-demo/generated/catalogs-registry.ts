@@ -18,14 +18,6 @@ export const clientBasicCatalog = new Catalog(
 );
 
 
-export const clientWeatherCatalog = new Catalog(
-  'https://a2ui.org/catalogs/v1/weather-catalog.json',
-  [
-    ...basicComponents,
-    WeatherWidget as any
-  ]
-);
-
 
 
 
@@ -33,9 +25,9 @@ export const clientWeatherCatalog = new Catalog(
 
 export const catalogsRegistry: Record<string, Catalog<any>> = {
   basic: clientBasicCatalog,
-  weather: clientWeatherCatalog,
+  
   
   
 };
 
-export type CatalogKey = 'basic' | 'weather'  ;
+export type CatalogKey = 'basic'   ;
