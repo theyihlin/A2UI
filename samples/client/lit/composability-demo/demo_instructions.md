@@ -79,8 +79,9 @@ This document provides a complete, step-by-step guide to delivering a flawless, 
 ---
 
 ## 🧹 Phase 5: Resetting the Demo Baseline
-To restore your demo to its clean, single-button starting state for the next presentation:
+To restore your demo to its clean, single-button starting state for the next presentation, run this shell-safe command:
 ```bash
-echo '[\n  "https://a2ui.org/catalogs/v1/basic-catalog.json"\n]' > config/catalogs.json && node scripts/compile-catalogs.js
+echo '["https://a2ui.org/catalogs/v1/basic-catalog.json"]' > config/catalogs.json && node scripts/compile-catalogs.js
 ```
 The browser instantly reloads back to the single **Basic Catalog** start screen!
+
