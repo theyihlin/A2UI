@@ -16,45 +16,36 @@
 
 package com.google.a2ui.a2a
 
-import io.a2a.spec.DataPart
+import com.google.a2ui.core.schema.A2uiConstants
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 class A2uiA2aTest {
+
   @Test
-  fun createA2uiPart_setsCorrectMimeType() {
-    val data = buildJsonObject { put("foo", "bar") }
-    val part = A2uiA2a.createA2uiPart(data)
-    assertTrue(part is DataPart)
-    assertEquals(A2uiA2a.A2UI_MIME_TYPE, (part as DataPart).metadata?.get(A2uiA2a.MIME_TYPE_KEY))
+  fun createsAgentExtensionWithDefaultParams() {
+    val extension = A2uiA2a.getA2uiAgentExtension()
+
+    assertEquals("Provides agent driven UI using the A2UI JSON format.", extension.description)
+    assertNotNull(extension.params)
+    assertTrue(extension.params!!.isEmpty())
+    assertFalse(extension.required)
+    assertEquals(A2uiA2a.A2UI_EXTENSION_URI, extension.uri)
   }
 
   @Test
-  fun isA2uiPart_identifiesCorrectPart() {
-    val data = buildJsonObject { put("foo", "bar") }
-    val part = A2uiA2a.createA2uiPart(data)
-    assertTrue(A2uiA2a.isA2uiPart(part))
-  }
+  fun createsAgentExtensionWithCustomParams() {
+    val extension =
+      A2uiA2a.getA2uiAgentExtension(
+        acceptsInlineCatalogs = true,
+        supportedCatalogIds = listOf("c1", "c2"),
+      )
 
-  @Test
-  fun tryActivateA2uiExtension_requested_returnsTrue() {
-    val activated = mutableListOf<String>()
-    val result =
-      A2uiA2a.tryActivateA2uiExtension(listOf(A2uiA2a.A2UI_EXTENSION_URI)) { activated.add(it) }
-
-    assertTrue(result)
-    assertEquals(listOf(A2uiA2a.A2UI_EXTENSION_URI), activated)
-  }
-
-  @Test
-  fun tryActivateA2uiExtension_notRequested_returnsFalse() {
-    val activated = mutableListOf<String>()
-    val result = A2uiA2a.tryActivateA2uiExtension(listOf("other")) { activated.add(it) }
-
-    kotlin.test.assertFalse(result)
-    assertTrue(activated.isEmpty())
+    assertNotNull(extension.params)
+    assertEquals(true, extension.params!![A2uiConstants.INLINE_CATALOGS_KEY])
+    assertEquals(listOf("c1", "c2"), extension.params!![A2uiConstants.SUPPORTED_CATALOG_IDS_KEY])
   }
 }

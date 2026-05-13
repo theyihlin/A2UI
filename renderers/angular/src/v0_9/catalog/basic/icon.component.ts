@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
-import { BoundProperty } from '../../core/types';
-import { BasicCatalogComponent } from './basic-catalog-component';
+import {Component, computed, ChangeDetectionStrategy} from '@angular/core';
+import {BasicCatalogComponent} from './basic-catalog-component';
+import {IconApi} from '@a2ui/web_core/v0_9/basic_catalog';
+import {AnyDuringSchemaAlignment} from '../types';
+
+const ICON_NAME_OVERRIDES: Record<string, string> = {
+  play: 'play_arrow',
+  rewind: 'fast_rewind',
+  favoriteOff: 'favorite_border',
+  starOff: 'star_border',
+};
 
 /**
  * Angular implementation of the A2UI Icon component (v0.9).
@@ -34,9 +42,9 @@ import { BasicCatalogComponent } from './basic-catalog-component';
   standalone: true,
   imports: [],
   template: `
-    @if (isPath()) {
+    @if (isSvgPath()) {
       <svg class="a2ui-icon svg" viewBox="0 0 24 24" [style.fill]="color() || 'currentColor'">
-        <path [attr.d]="path()"></path>
+        <path [attr.d]="svgPath()"></path>
       </svg>
     } @else {
       <i class="material-icons a2ui-icon" [style.color]="color()">
@@ -52,8 +60,11 @@ import { BasicCatalogComponent } from './basic-catalog-component';
         height: var(--a2ui-icon-size, 24px);
         font-size: var(--a2ui-icon-size, 24px);
         font-family: var(--a2ui-icon-font-family, 'Material Icons');
-        color: var(--a2ui-icon-color, var(--a2ui-text-color-text, var(--a2ui-color-on-background, #333)));
-        font-variation-settings: var(--a2ui-icon-font-variation-settings, "FILL" 1);
+        color: var(
+          --a2ui-icon-color,
+          var(--a2ui-text-color-text, var(--a2ui-color-on-background, #333))
+        );
+        font-variation-settings: var(--a2ui-icon-font-variation-settings, 'FILL' 1);
         line-height: 1;
         text-transform: none;
         letter-spacing: normal;
@@ -73,37 +84,28 @@ import { BasicCatalogComponent } from './basic-catalog-component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class IconComponent extends BasicCatalogComponent {
-  /**
-   * Reactive properties resolved from the A2UI {@link ComponentModel}.
-   *
-   * Expected properties:
-   * - `name`: The name of the icon (e.g., 'home', 'settings') OR an object
-   *           with a `path` property for SVG icons.
-   * - `color`: The CSS color to apply to the icon.
-   */
-  props = input<Record<string, BoundProperty>>({});
-  surfaceId = input.required<string>();
-  componentId = input<string>();
-  dataContextPath = input<string>('/');
+export class IconComponent extends BasicCatalogComponent<typeof IconApi> {
+  readonly color = computed(() => (this.props() as AnyDuringSchemaAlignment)['color']?.value());
+  readonly iconNameRaw = computed(() => this.props()['name']?.value());
 
-  color = computed(() => this.props()['color']?.value());
-  iconNameRaw = computed(() => this.props()['name']?.value());
-
-  isPath = computed(() => {
+  readonly isSvgPath = computed(() => {
     const name = this.iconNameRaw();
-    return typeof name === 'object' && name !== null && 'path' in name;
+    return typeof name === 'object' && name !== null && 'svgPath' in name;
   });
 
-  path = computed(() => {
+  readonly svgPath = computed(() => {
     const name = this.iconNameRaw();
-    return (name as any)?.path || '';
+    if (typeof name === 'object' && name !== null && 'svgPath' in name) {
+      return name.svgPath;
+    }
+    return '';
   });
 
-  iconName = computed(() => {
+  readonly iconName = computed(() => {
     const name = this.iconNameRaw();
     if (typeof name !== 'string') return '';
+    if (ICON_NAME_OVERRIDES[name]) return ICON_NAME_OVERRIDES[name];
     // Convert camelCase to snake_case for Material Icons
-    return name.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+    return name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   });
 }

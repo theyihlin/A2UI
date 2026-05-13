@@ -176,7 +176,7 @@ The envelope defines four primary message types, and every message streamed by t
 
 ### `createSurface`
 
-This message signals the client to create a new surface and begin rendering it. A surface must be created before any `updateComponents` or `updateDataModel` messages can be sent to it. While typically achieved by the agent sending a `createSurface` message, an agent may skip this if it knows the surface has already been created (e.g., by another agent). Once a surface is created, its `surfaceId` and `catalogId` are fixed; to reconfigure them, the surface must be deleted and recreated. One of the components in one of the component lists MUST have an `id` of `root` to serve as the root of the component tree.
+This message signals the client to create a new surface and begin rendering it. A surface must be created before any `updateComponents` or `updateDataModel` messages can be sent to it. While typically achieved by the agent sending a `createSurface` message, an agent may skip this if it knows the surface has already been created (e.g., by another agent). Once a surface is created, its `surfaceId` and `catalogId` are fixed; to reconfigure them, the surface must be deleted and recreated. It is an error to send `createSurface` for a `surfaceId` that already exists without first deleting it. One of the components in one of the component lists MUST have an `id` of `root` to serve as the root of the component tree.
 
 **Properties:**
 
@@ -423,8 +423,8 @@ When a container component (such as `Column`, `Row`, or `List`) utilizes the **T
 {
   "company": "Acme Corp",
   "employees": [
-    { "name": "Alice", "role": "Engineer" },
-    { "name": "Bob", "role": "Designer" }
+    {"name": "Alice", "role": "Engineer"},
+    {"name": "Bob", "role": "Designer"}
   ]
 }
 ```
@@ -568,8 +568,8 @@ _Replace the entire data model:_
   "updateDataModel": {
     "surfaceId": "surface_123",
     "value": {
-      "user": { "firstName": "Alice", "lastName": "Smith" },
-      "preferences": { "theme": "dark" }
+      "user": {"firstName": "Alice", "lastName": "Smith"},
+      "preferences": {"theme": "dark"}
     }
   }
 }
@@ -628,7 +628,7 @@ Buttons can also define `checks`. If any check fails, the button is automaticall
           "values": [
             {
               "call": "required",
-              "args": { "value": { "path": "/formData/terms" } }
+              "args": {"value": {"path": "/formData/terms"}}
             },
             {
               "call": "or",
@@ -636,11 +636,11 @@ Buttons can also define `checks`. If any check fails, the button is automaticall
                 "values": [
                   {
                     "call": "required",
-                    "args": { "value": { "path": "/formData/email" } }
+                    "args": {"value": {"path": "/formData/email"}}
                   },
                   {
                     "call": "required",
-                    "args": { "value": { "path": "/formData/phone" } }
+                    "args": {"value": {"path": "/formData/phone"}}
                   }
                 ]
               }

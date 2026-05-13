@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
-import { BoundProperty } from '../../core/types';
-import { BasicCatalogComponent } from './basic-catalog-component';
+import {Component, computed, ChangeDetectionStrategy} from '@angular/core';
+import {BasicCatalogComponent} from './basic-catalog-component';
+import {DateTimeInputApi} from '@a2ui/web_core/v0_9/basic_catalog';
 
 /**
  * Angular implementation of the A2UI DateTimeInput component (v0.9).
@@ -73,7 +73,10 @@ import { BasicCatalogComponent } from './basic-catalog-component';
         width: 100%;
       }
       .a2ui-date-time-label {
-        font-size: var(--a2ui-datetimeinput-label-font-size, var(--a2ui-label-font-size, var(--a2ui-font-size-s, 14px)));
+        font-size: var(
+          --a2ui-datetimeinput-label-font-size,
+          var(--a2ui-label-font-size, var(--a2ui-font-size-s, 14px))
+        );
         font-weight: var(--a2ui-datetimeinput-label-font-weight, bold);
         color: var(--a2ui-text-color-text, var(--a2ui-color-on-background, #333));
       }
@@ -95,34 +98,20 @@ import { BasicCatalogComponent } from './basic-catalog-component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DateTimeInputComponent extends BasicCatalogComponent {
-  /**
-   * Reactive properties resolved from the A2UI {@link ComponentModel}.
-   *
-   * Expected properties:
-   * - `value`: The current ISO date/time string.
-   * - `label`: Optional label text.
-   * - `enableDate`: Whether to show the date picker (default: true).
-   * - `enableTime`: Whether to show the time picker (default: false).
-   */
-  props = input<Record<string, BoundProperty>>({});
-  surfaceId = input.required<string>();
-  componentId = input<string>();
-  dataContextPath = input<string>('/');
+export class DateTimeInputComponent extends BasicCatalogComponent<typeof DateTimeInputApi> {
+  readonly label = computed(() => this.props()['label']?.value());
+  readonly enableDate = computed(() => this.props()['enableDate']?.value() ?? true);
+  readonly enableTime = computed(() => this.props()['enableTime']?.value() ?? false);
 
-  label = computed(() => this.props()['label']?.value());
-  enableDate = computed(() => this.props()['enableDate']?.value() ?? true);
-  enableTime = computed(() => this.props()['enableTime']?.value() ?? false);
+  private readonly rawValue = computed(() => this.props()['value']?.value() || '');
 
-  private rawValue = computed(() => this.props()['value']?.value() || '');
-
-  dateValue = computed(() => {
+  readonly dateValue = computed(() => {
     const val = this.rawValue();
     if (!val) return '';
     return val.includes('T') ? val.split('T')[0] : val;
   });
 
-  timeValue = computed(() => {
+  readonly timeValue = computed(() => {
     const val = this.rawValue();
     if (!val || !val.includes('T')) return '';
     return val.split('T')[1].substring(0, 5);

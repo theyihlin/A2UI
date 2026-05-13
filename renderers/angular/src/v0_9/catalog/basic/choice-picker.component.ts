@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
-import { BoundProperty } from '../../core/types';
-import { BasicCatalogComponent } from './basic-catalog-component';
+import {Component, computed, ChangeDetectionStrategy} from '@angular/core';
+import {BasicCatalogComponent} from './basic-catalog-component';
+import {ChoicePickerApi} from '@a2ui/web_core/v0_9/basic_catalog';
 
 /**
  * Angular implementation of the A2UI ChoicePicker component (v0.9).
@@ -43,30 +43,30 @@ import { BasicCatalogComponent } from './basic-catalog-component';
       <!-- Chips Variant -->
       @if (displayStyle() === 'chips') {
         <div class="a2ui-chips-group">
-          @for (choice of choices(); track choice.value) {
+          @for (option of options(); track option.value) {
             <button
               class="a2ui-chip"
-              [class.active]="isSelected(choice.value)"
-              (click)="toggleActive(choice.value)"
+              [class.active]="isSelected(option.value)"
+              (click)="toggleActive(option.value)"
             >
-              {{ choice.label }}
+              {{ option.label }}
             </button>
           }
         </div>
       } @else {
         <!-- Checkbox/Radio Variant -->
         <div class="a2ui-options-group">
-          @for (choice of choices(); track choice.value) {
+          @for (option of options(); track option.value) {
             <label class="a2ui-option-label">
               <input
                 [type]="isMultiple() ? 'checkbox' : 'radio'"
                 [name]="componentId()"
-                [value]="choice.value"
-                [checked]="isSelected(choice.value)"
-                (change)="onCheckChange(choice.value, $event)"
+                [value]="option.value"
+                [checked]="isSelected(option.value)"
+                (change)="onCheckChange(option.value, $event)"
                 class="a2ui-option-input"
               />
-              <span class="a2ui-option-text">{{ choice.label }}</span>
+              <span class="a2ui-option-text">{{ option.label }}</span>
             </label>
           }
         </div>
@@ -101,7 +101,10 @@ import { BasicCatalogComponent } from './basic-catalog-component';
         gap: var(--a2ui-choicepicker-gap, var(--a2ui-spacing-xs, 0.25rem));
       }
       .a2ui-chip {
-        padding: var(--a2ui-choicepicker-chip-padding, var(--a2ui-spacing-s, 0.5rem) var(--a2ui-spacing-m, 1rem));
+        padding: var(
+          --a2ui-choicepicker-chip-padding,
+          var(--a2ui-spacing-s, 0.5rem) var(--a2ui-spacing-m, 1rem)
+        );
         border-radius: var(--a2ui-choicepicker-chip-border-radius, 100px);
         border: var(--a2ui-choicepicker-chip-border, 1px solid var(--a2ui-color-border, #ccc));
         background: var(--a2ui-choicepicker-chip-background, var(--a2ui-color-surface, #fff));
@@ -109,35 +112,25 @@ import { BasicCatalogComponent } from './basic-catalog-component';
         transition: all 0.2s;
       }
       .a2ui-chip.active {
-        background-color: var(--a2ui-choicepicker-chip-background-selected, var(--a2ui-color-primary, #17e));
+        background-color: var(
+          --a2ui-choicepicker-chip-background-selected,
+          var(--a2ui-color-primary, #17e)
+        );
         color: var(--a2ui-color-on-primary, #fff);
-        border-color: var(--a2ui-choicepicker-chip-background-selected, var(--a2ui-color-primary, #17e));
+        border-color: var(
+          --a2ui-choicepicker-chip-background-selected,
+          var(--a2ui-color-primary, #17e)
+        );
       }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChoicePickerComponent extends BasicCatalogComponent {
-  /**
-   * Reactive properties resolved from the A2UI {@link ComponentModel}.
-   *
-   * Expected properties:
-   * - `value`: The currently selected value(s).
-   * - `choices` or `options`: List of choice objects (label and value).
-   * - `displayStyle`: How to render the choices ('default' or 'chips').
-   * - `variant`: Selection mode ('singleSelection' or 'multipleSelection').
-   */
-  props = input<Record<string, BoundProperty>>({});
-  surfaceId = input.required<string>();
-  componentId = input<string>();
-  dataContextPath = input<string>('/');
-
-  displayStyle = computed(() => this.props()['displayStyle']?.value());
-  choices = computed(
-    () => this.props()['choices']?.value() || this.props()['options']?.value() || [],
-  );
-  variant = computed(() => this.props()['variant']?.value());
-  selectedValue = computed(() => this.props()['value']?.value());
+export class ChoicePickerComponent extends BasicCatalogComponent<typeof ChoicePickerApi> {
+  readonly displayStyle = computed(() => this.props()['displayStyle']?.value());
+  readonly options = computed(() => this.props()['options']?.value() || []);
+  readonly variant = computed(() => this.props()['variant']?.value());
+  readonly selectedValue = computed(() => this.props()['value']?.value());
 
   isMultiple(): boolean {
     return this.variant() === 'multipleSelection';
@@ -173,7 +166,7 @@ export class ChoicePickerComponent extends BasicCatalogComponent {
       this.props()['value']?.onUpdate(next);
     } else {
       if (active) {
-        this.props()['value']?.onUpdate(value);
+        this.props()['value']?.onUpdate([value]);
       }
     }
   }

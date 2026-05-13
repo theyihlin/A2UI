@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, input, computed, ChangeDetectionStrategy, signal } from '@angular/core';
-import { ComponentHostComponent } from '../../core/component-host.component';
-import { BoundProperty } from '../../core/types';
-import { BasicCatalogComponent } from './basic-catalog-component';
+import {Component, computed, ChangeDetectionStrategy, signal} from '@angular/core';
+import {ComponentHostComponent} from '../../core/component-host.component';
+import {BasicCatalogComponent} from './basic-catalog-component';
+import {TabsApi} from '@a2ui/web_core/v0_9/basic_catalog';
 
 /**
  * Angular implementation of the A2UI Tabs component (v0.9).
@@ -46,14 +46,14 @@ import { BasicCatalogComponent } from './basic-catalog-component';
             [class.active]="activeTabIndex() === i"
             (click)="setActiveTab(i)"
           >
-            {{ tab.label }}
+            {{ tab.title }}
           </button>
         }
       </div>
-      @if (normalizedActiveTabContent()) {
+      @if (normalizedActiveTabChild()) {
         <div class="a2ui-tab-content">
           <a2ui-v09-component-host
-            [componentKey]="normalizedActiveTabContent()!"
+            [componentKey]="normalizedActiveTabChild()!"
             [surfaceId]="surfaceId()"
           >
           </a2ui-v09-component-host>
@@ -95,30 +95,19 @@ import { BasicCatalogComponent } from './basic-catalog-component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TabsComponent extends BasicCatalogComponent {
-  /**
-   * Reactive properties resolved from the A2UI {@link ComponentModel}.
-   *
-   * Expected properties:
-   * - `tabs`: A list of tab objects, each containing a `label` and `content` ID.
-   */
-  props = input<Record<string, BoundProperty>>({});
-  surfaceId = input.required<string>();
-  componentId = input<string>();
-  dataContextPath = input<string>('/');
-
+export class TabsComponent extends BasicCatalogComponent<typeof TabsApi> {
   activeTabIndex = signal(0);
 
-  tabs = computed(() => this.props()['tabs']?.value() || []);
-  activeTab = computed(() => this.tabs()[this.activeTabIndex()]);
+  readonly tabs = computed(() => this.props()['tabs']?.value() || []);
+  readonly activeTab = computed(() => this.tabs()[this.activeTabIndex()]);
 
-  protected normalizedActiveTabContent = computed(() => {
-    const content = this.activeTab()?.content;
-    if (!content) return null;
-    if (typeof content === 'object' && content !== null && 'id' in content) {
-      return content as { id: string; basePath: string };
+  protected readonly normalizedActiveTabChild = computed(() => {
+    const child = this.activeTab()?.child;
+    if (!child) return null;
+    if (typeof child === 'object' && child !== null && 'id' in child) {
+      return child as {id: string; basePath: string};
     }
-    return { id: content as string, basePath: this.dataContextPath() };
+    return {id: child as string, basePath: this.dataContextPath()};
   });
 
   setActiveTab(index: number) {

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
-import { BoundProperty } from '../../core/types';
-import { BasicCatalogComponent } from './basic-catalog-component';
+import {Component, computed, ChangeDetectionStrategy} from '@angular/core';
+import {BasicCatalogComponent} from './basic-catalog-component';
+import {AudioPlayerApi} from '@a2ui/web_core/v0_9/basic_catalog';
 
 /**
  * Angular implementation of the A2UI AudioPlayer component (v0.9).
@@ -66,19 +66,7 @@ import { BasicCatalogComponent } from './basic-catalog-component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AudioPlayerComponent extends BasicCatalogComponent {
-  /**
-   * Reactive properties resolved from the A2UI {@link ComponentModel}.
-   *
-   * Expected properties:
-   * - `url`: The absolute URL of the audio file.
-   * - `description`: Optional text to display above the player.
-   */
-  props = input<Record<string, BoundProperty>>({});
-  surfaceId = input<string>();
-  componentId = input<string>();
-  dataContextPath = input<string>();
-
-  description = computed(() => this.props()['description']?.value());
-  url = computed(() => this.props()['url']?.value());
+export class AudioPlayerComponent extends BasicCatalogComponent<typeof AudioPlayerApi> {
+  readonly description = computed(() => this.props()['description']?.value());
+  readonly url = computed(() => this.props()['url']?.value());
 }
