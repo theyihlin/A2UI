@@ -542,13 +542,35 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#architecture-diagram">
+<a class="md-nav__link" href="#physical-iframe-nesting">
 <span class="md-ellipsis">
       
-        Architecture Diagram
+        Physical Iframe Nesting
       
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-architecture-lifecycle-flow">
+<span class="md-ellipsis">
+      
+        End-to-End Architecture &amp; Lifecycle Flow
+      
+    </span>
+</a>
+<nav aria-label="End-to-End Architecture &amp; Lifecycle Flow" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#how-the-sibling-update-loop-works">
+<span class="md-ellipsis">
+      
+        How the Sibling Update Loop Works:
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -1092,13 +1114,35 @@
 </a>
 </li>
 <li class="md-nav__item">
-<a class="md-nav__link" href="#architecture-diagram">
+<a class="md-nav__link" href="#physical-iframe-nesting">
 <span class="md-ellipsis">
       
-        Architecture Diagram
+        Physical Iframe Nesting
       
     </span>
 </a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-architecture-lifecycle-flow">
+<span class="md-ellipsis">
+      
+        End-to-End Architecture &amp; Lifecycle Flow
+      
+    </span>
+</a>
+<nav aria-label="End-to-End Architecture &amp; Lifecycle Flow" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#how-the-sibling-update-loop-works">
+<span class="md-ellipsis">
+      
+        How the Sibling Update Loop Works:
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
 </li>
 </ul>
 </nav>
@@ -1333,7 +1377,7 @@
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">¶</a></h2>
 <p>The Model Context Protocol (MCP) allows MCP servers to deliver rich, interactive HTML-based user interfaces to hosts. A2UI provides a secure environment to run these third-party applications.</p>
-<p><img alt="MCP Calculator demo — loading the app, opening the calculator, and chatting with the agent" src="../assets/mcp-apps-calculator-demo.gif" width="640"/></p>
+<p><img alt="MCP Calculator demo — loading the app, opening the calculator, and chatting with the agent" src="../../assets/mcp-apps-calculator-demo.gif"/></p>
 <h2 id="double-iframe-isolation-pattern">Double-Iframe Isolation Pattern<a class="headerlink" href="#double-iframe-isolation-pattern" title="Permanent link">¶</a></h2>
 <p>To run untrusted third-party code securely, A2UI utilizes a <strong>double-iframe</strong> isolation pattern. This approach isolates raw DOM injection from the main application while maintaining a structured JSON-RPC channel.</p>
 <h3 id="security-rationale">Security Rationale<a class="headerlink" href="#security-rationale" title="Permanent link">¶</a></h3>
@@ -1352,7 +1396,7 @@
 </ul>
 </li>
 </ol>
-<h3 id="architecture-diagram">Architecture Diagram<a class="headerlink" href="#architecture-diagram" title="Permanent link">¶</a></h3>
+<h3 id="physical-iframe-nesting">Physical Iframe Nesting<a class="headerlink" href="#physical-iframe-nesting" title="Permanent link">¶</a></h3>
 <pre class="mermaid"><code>flowchart TD
     subgraph "Host Application"
         A[A2UI Page] --&gt; B["Host Component e.g., McpApp"]
@@ -1363,6 +1407,47 @@
     subgraph "Embedded App"
         C --&gt;|Dynamic Injection| D[inner iframe untrusted content]
     end</code></pre>
+<h3 id="end-to-end-architecture-lifecycle-flow">End-to-End Architecture &amp; Lifecycle Flow<a class="headerlink" href="#end-to-end-architecture-lifecycle-flow" title="Permanent link">¶</a></h3>
+<p>The complete cycle—including layout tree hierarchy, completely separated backend actors (the Proxy Agent and the MCP Server), and how isolated third-party widgets interact reactively with their native siblings (e.g., the Pong game's scoreboard)—is detailed below:</p>
+<pre class="mermaid"><code>graph TD
+    %% 1. Top Tier (Strict vertical hierarchy)
+    MCPServer["MCP App Server&lt;br/&gt;(Hosts widget resources &amp; core tools)"]
+
+    %% 2. Middle-Top Tier
+    Agent["AI Agent&lt;br/&gt;(A2UI Backend Coordinator)"]
+
+    %% 3. Subgraph for Host layout tree (Bottom Tier)
+    subgraph HostApp ["Host Application"]
+        direction TB
+        Shell["A2UI Rendering Engine &amp; State Manager&lt;br/&gt;(Orchestrates native layout &amp; state bindings)"]
+
+        subgraph LayoutTree ["A2UI Component Tree"]
+            McpComponent["McpApp Component&lt;br/&gt;(Sandboxed HTML/JS Widget)"]
+            SiblingComponent["Other A2UI Components&lt;br/&gt;(e.g., PongScoreBoard)"]
+        end
+
+        Shell &lt;--&gt;|"1. Initialize postMessage Event Bridge"| McpComponent
+        Shell -.-&gt;|"5. Reactive State Update&lt;br/&gt;(e.g., Render updated score)"| SiblingComponent
+    end
+
+    %% Vertical Channel connecting Top to Middle-Top
+    MCPServer ==&gt;|"MCP Protocol (SSE / Stdio)"| Agent
+
+    %% Unidirectional Data Cycle (Flowing vertically through the center)
+    McpComponent ==&gt;|"2. Tool Action Request&lt;br/&gt;(e.g., score_update)"| Shell
+    Shell ==&gt;|"3. Action Delegation (A2UI Protocol)"| Agent
+    Agent ==&gt;|"4. State Mutation &amp; Sync (dataModelUpdate)"| Shell
+
+    %% Style Sibling Relationship
+    McpComponent -.-&gt;|"No Direct Access (Strictly Isolated)"| SiblingComponent</code></pre>
+<h4 id="how-the-sibling-update-loop-works">How the Sibling Update Loop Works:<a class="headerlink" href="#how-the-sibling-update-loop-works" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>Initialize postMessage Event Bridge (1)</strong>: The host shell instantiates the double-iframe sandbox and establishes a secure message relay bridge with the <code>McpApp</code> component.</li>
+<li><strong>Tool Action Request (2)</strong>: When a user interacts with the sandboxed app (e.g., scores a point in the Pong game), the app triggers a tool action by posting a message over the postMessage bridge.</li>
+<li><strong>Action Delegation (3)</strong>: The host layout engine intercepts the action and delegates its execution to the <code>AI Proxy Agent</code> over the A2UI/A2A protocol. The agent optionally coordinates with the <code>MCP App Server</code> using the standard MCP Protocol (SSE / Stdio) if external calculation or resources are required.</li>
+<li><strong>State Mutation &amp; Sync (4)</strong>: The agent processes the action, mutates the master session state, and pushes a <code>dataModelUpdate</code> back to the host state manager.</li>
+<li><strong>Reactive State Update (5)</strong>: The host updates its local store, triggering a reactive update on sibling A2UI components (such as native scoreboards or displays) bound to that state path. Direct communication between the sandboxed component and native sibling elements is strictly blocked to maintain containerization security.</li>
+</ol>
 <h2 id="usage-code-example">Usage / Code Example<a class="headerlink" href="#usage-code-example" title="Permanent link">¶</a></h2>
 <p>The MCP Apps component typically resolves to a <code>custom</code> node in the A2UI catalog. Here is how a developer might use it in their code.</p>
 <h3 id="1-register-within-the-catalog">1. Register within the Catalog<a class="headerlink" href="#1-register-within-the-catalog" title="Permanent link">¶</a></h3>

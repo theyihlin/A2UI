@@ -620,6 +620,15 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#inlined-mcp-app-html-pseudocode">
+<span class="md-ellipsis">
+      
+        Inlined MCP App HTML Pseudocode
+      
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1030,6 +1039,15 @@
     </span>
 </a>
 </li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#inlined-mcp-app-html-pseudocode">
+<span class="md-ellipsis">
+      
+        Inlined MCP App HTML Pseudocode
+      
+    </span>
+</a>
+</li>
 </ul>
 </nav>
 </li>
@@ -1072,6 +1090,7 @@
 </a>
 <h1 id="a2ui-dynamic-rendering-within-mcp-applications">A2UI Dynamic Rendering within MCP Applications<a class="headerlink" href="#a2ui-dynamic-rendering-within-mcp-applications" title="Permanent link">¶</a></h1>
 <p>This guide shows you how to serve rich, interactive A2UI interfaces within <a href="https://modelcontextprotocol.io/extensions/apps/overview">MCP Apps</a> using Tools and Embedded Resources. By the end, you'll have a working MCP server that returns an MCP App which can render A2UI components and handle A2UI interactions. By supporting native A2UI within MCP Apps, your MCP server can securely collaborate with remote agents while maintaining consistency over UI styling.</p>
+<p><img alt="Generative document editor demo — highlighting text and interacting with dynamic A2UI controls to generate and revise content" src="../../assets/editor.gif"/></p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong><a href="https://www.python.org/">Python 3.10+</a></strong></li>
@@ -1087,6 +1106,53 @@
 <li><strong>MCP Application (Sandboxed)</strong>: The untrusted third-party web application (e.g., a Lit or Angular micro-app) running inside a double-iframe sandbox. This app contains the A2UI surface.</li>
 <li><strong>MCP Server</strong>: The backend server providing the application resources and handling tool calls.</li>
 </ol>
+<pre class="mermaid"><code>
+flowchart TD
+    %% Style Definitions
+    classDef client fill:#e8f0fe,stroke:#1a73e8,color:#185abc,stroke-width:2px
+    classDef server fill:#f1f3f4,stroke:#3c4043,color:#202124,stroke-width:2px
+    classDef agent fill:#eef3fc,stroke:#74a0f7,color:#185abc,stroke-width:2px
+
+    %% 1. Top: AI Agent Environment
+    subgraph AgentEnv ["Server-Side Environment"]
+        direction LR
+        Agent["Generative A2UI Agent (e.g., Smart Agent)"]:::agent
+        MCPServer["MCP Server"]:::server
+    end
+
+    %% 3. Bottom: Client-Side Environment
+    subgraph ClientEnv ["Client-Side Environment"]
+        Host["Client Host Application"]:::client
+
+        subgraph SandboxBound ["Double-IFrame Sandbox"]
+            subgraph McpApp ["MCP App (e.g., Editor App)"]
+                direction TB
+                %% Added a dedicated node for the app logic to prevent child-to-parent layout collapse
+                AppLogic["Web Native App&lt;br/&gt;(e.g., Editor Panel)"]:::client
+                A2UISurface["A2UI Surface&lt;br/&gt;(e.g., Controls Panel)"]:::client
+                AppBridge["App Bridge"]:::client
+                A2UIRenderer["A2UI Rendering Engine"]:::client
+
+            end
+
+            %% Changed connection to target the node inside, not the subgraph wrapper
+            AppBridge --&gt;|"A2UI JSON"| A2UIRenderer
+            A2UIRenderer -.-&gt;|"Mounts &amp; renders dynamic controls inside"| A2UISurface
+            A2UISurface --&gt;|"User Action&lt;br/&gt;(e.g., Generate text)"| AppBridge
+            AppLogic --&gt;|"Context Trigger&lt;br/&gt;(e.g., Highlight text)"| AppBridge
+            AppBridge --&gt;|"Update (e.g., Revised text)"| AppLogic
+            A2UISurface --&gt;|"Update&lt;br/&gt;(e.g., Accept/Reject)"| AppLogic
+        end
+
+        Host &lt;--&gt;|"postMessage Bridge"| AppBridge
+    end
+
+    %% --- Strictly Vertical Stacking Connections ---
+    Agent &lt;==&gt;|"Delegation &amp; Payload"| MCPServer
+    MCPServer &lt;==&gt;|"MCP Protocol"| Host
+
+    %% --- Local Context Flow Indicators ---
+    %% Updated links to point to AppLogic instead of the McpApp subgraph</code></pre>
 <h2 id="deep-dive-the-communication-flow">Deep Dive: The Communication Flow<a class="headerlink" href="#deep-dive-the-communication-flow" title="Permanent link">¶</a></h2>
 <p>A key aspect of this pattern is that the <strong>MCP App</strong> renders the A2UI payloads directly, rather than relying on the Client Host Application to do so.</p>
 <h3 id="loading-a2ui-components-in-mcp-apps">Loading A2UI Components in MCP Apps<a class="headerlink" href="#loading-a2ui-components-in-mcp-apps" title="Permanent link">¶</a></h3>
@@ -1260,6 +1326,70 @@
 </span><span id="__span-3-20"><a href="#__codelineno-3-20" id="__codelineno-3-20" name="__codelineno-3-20"></a><span class="p">});</span>
 </span></code></pre></div>
 <p>This pattern enables the MCP App to serve as a dynamic interface for the MCP Server's A2UI capabilities while maintaining strict security isolation.</p>
+<h3 id="inlined-mcp-app-html-pseudocode">Inlined MCP App HTML Pseudocode<a class="headerlink" href="#inlined-mcp-app-html-pseudocode" title="Permanent link">¶</a></h3>
+<p>To put this all together, here is an HTML mockup representing a compiled and inlined MCP Application. It defines the placeholder UI with a native <code>&lt;a2ui-surface&gt;</code> element, initializes the <code>AppBridge</code> to communicate with the outer host, fetches its dynamic A2UI layout on load, and processes events using the loaded A2UI SDK:</p>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-4-1"><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="cp">&lt;!DOCTYPE html&gt;</span>
+</span><span id="__span-4-2"><a href="#__codelineno-4-2" id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">"en"</span><span class="p">&gt;</span>
+</span><span id="__span-4-3"><a href="#__codelineno-4-3" id="__codelineno-4-3" name="__codelineno-4-3"></a>  <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+</span><span id="__span-4-4"><a href="#__codelineno-4-4" id="__codelineno-4-4" name="__codelineno-4-4"></a>    <span class="p">&lt;</span><span class="nt">meta</span> <span class="na">charset</span><span class="o">=</span><span class="s">"UTF-8"</span> <span class="p">/&gt;</span>
+</span><span id="__span-4-5"><a href="#__codelineno-4-5" id="__codelineno-4-5" name="__codelineno-4-5"></a>    <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Inlined MCP App Surface<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+</span><span id="__span-4-6"><a href="#__codelineno-4-6" id="__codelineno-4-6" name="__codelineno-4-6"></a>    <span class="cm">&lt;!-- Assumes the standard A2UI SDK script is bundled or loaded --&gt;</span>
+</span><span id="__span-4-7"><a href="#__codelineno-4-7" id="__codelineno-4-7" name="__codelineno-4-7"></a>  <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+</span><span id="__span-4-8"><a href="#__codelineno-4-8" id="__codelineno-4-8" name="__codelineno-4-8"></a>  <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+</span><span id="__span-4-9"><a href="#__codelineno-4-9" id="__codelineno-4-9" name="__codelineno-4-9"></a>    <span class="p">&lt;</span><span class="nt">div</span><span class="p">&gt;</span>
+</span><span id="__span-4-10"><a href="#__codelineno-4-10" id="__codelineno-4-10" name="__codelineno-4-10"></a>      <span class="p">&lt;</span><span class="nt">h3</span><span class="p">&gt;</span>MCP App (Editor Panel)<span class="p">&lt;/</span><span class="nt">h3</span><span class="p">&gt;</span>
+</span><span id="__span-4-11"><a href="#__codelineno-4-11" id="__codelineno-4-11" name="__codelineno-4-11"></a>      <span class="p">&lt;</span><span class="nt">p</span><span class="p">&gt;</span>This text is native to the sandboxed third-party app.<span class="p">&lt;/</span><span class="nt">p</span><span class="p">&gt;</span>
+</span><span id="__span-4-12"><a href="#__codelineno-4-12" id="__codelineno-4-12" name="__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a href="#__codelineno-4-13" id="__codelineno-4-13" name="__codelineno-4-13"></a>      <span class="cm">&lt;!-- A2UI Surface custom element provided by the A2UI SDK --&gt;</span>
+</span><span id="__span-4-14"><a href="#__codelineno-4-14" id="__codelineno-4-14" name="__codelineno-4-14"></a>      <span class="p">&lt;</span><span class="nt">a2ui-surface</span> <span class="na">surfaceId</span><span class="o">=</span><span class="s">"recipe-card"</span><span class="p">&gt;&lt;/</span><span class="nt">a2ui-surface</span><span class="p">&gt;</span>
+</span><span id="__span-4-15"><a href="#__codelineno-4-15" id="__codelineno-4-15" name="__codelineno-4-15"></a>    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+</span><span id="__span-4-16"><a href="#__codelineno-4-16" id="__codelineno-4-16" name="__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a href="#__codelineno-4-17" id="__codelineno-4-17" name="__codelineno-4-17"></a>    <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-4-18"><a href="#__codelineno-4-18" id="__codelineno-4-18" name="__codelineno-4-18"></a><span class="w">      </span><span class="c1">// Note: The pseudocode below assumes AppBridge from @modelcontextprotocol/ext-apps</span>
+</span><span id="__span-4-19"><a href="#__codelineno-4-19" id="__codelineno-4-19" name="__codelineno-4-19"></a><span class="w">      </span><span class="c1">// and a2uiProcessor from the A2UI SDK are preloaded or inlined.</span>
+</span><span id="__span-4-20"><a href="#__codelineno-4-20" id="__codelineno-4-20" name="__codelineno-4-20"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">bridge</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">AppBridge</span><span class="p">({</span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">'editor-panel'</span><span class="p">,</span><span class="w"> </span><span class="nx">version</span><span class="o">:</span><span class="w"> </span><span class="s1">'1.0.0'</span><span class="p">});</span>
+</span><span id="__span-4-21"><a href="#__codelineno-4-21" id="__codelineno-4-21" name="__codelineno-4-21"></a>
+</span><span id="__span-4-22"><a href="#__codelineno-4-22" id="__codelineno-4-22" name="__codelineno-4-22"></a><span class="w">      </span><span class="c1">// Helper to extract and process dynamic A2UI responses from tool results</span>
+</span><span id="__span-4-23"><a href="#__codelineno-4-23" id="__codelineno-4-23" name="__codelineno-4-23"></a><span class="w">      </span><span class="kd">function</span><span class="w"> </span><span class="nx">processA2UIResponse</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-24"><a href="#__codelineno-4-24" id="__codelineno-4-24" name="__codelineno-4-24"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">a2uiResource</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">result</span><span class="o">?</span><span class="p">.</span><span class="nx">content</span><span class="o">?</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span>
+</span><span id="__span-4-25"><a href="#__codelineno-4-25" id="__codelineno-4-25" name="__codelineno-4-25"></a><span class="w">          </span><span class="nx">c</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'resource'</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">c</span><span class="p">.</span><span class="nx">resource</span><span class="o">?</span><span class="p">.</span><span class="nx">mimeType</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">'application/json+a2ui'</span><span class="p">,</span>
+</span><span id="__span-4-26"><a href="#__codelineno-4-26" id="__codelineno-4-26" name="__codelineno-4-26"></a><span class="w">        </span><span class="p">);</span>
+</span><span id="__span-4-27"><a href="#__codelineno-4-27" id="__codelineno-4-27" name="__codelineno-4-27"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">a2uiResource</span><span class="o">?</span><span class="p">.</span><span class="nx">resource</span><span class="o">?</span><span class="p">.</span><span class="nx">text</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-28"><a href="#__codelineno-4-28" id="__codelineno-4-28" name="__codelineno-4-28"></a><span class="w">          </span><span class="kd">const</span><span class="w"> </span><span class="nx">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">a2uiResource</span><span class="p">.</span><span class="nx">resource</span><span class="p">.</span><span class="nx">text</span><span class="p">);</span>
+</span><span id="__span-4-29"><a href="#__codelineno-4-29" id="__codelineno-4-29" name="__codelineno-4-29"></a><span class="w">          </span><span class="nb">window</span><span class="p">.</span><span class="nx">a2uiProcessor</span><span class="p">.</span><span class="nx">processMessages</span><span class="p">(</span><span class="nx">payload</span><span class="p">);</span>
+</span><span id="__span-4-30"><a href="#__codelineno-4-30" id="__codelineno-4-30" name="__codelineno-4-30"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-4-31"><a href="#__codelineno-4-31" id="__codelineno-4-31" name="__codelineno-4-31"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-4-32"><a href="#__codelineno-4-32" id="__codelineno-4-32" name="__codelineno-4-32"></a>
+</span><span id="__span-4-33"><a href="#__codelineno-4-33" id="__codelineno-4-33" name="__codelineno-4-33"></a><span class="w">      </span><span class="c1">// 1. Initialize AppBridge and fetch initial controls</span>
+</span><span id="__span-4-34"><a href="#__codelineno-4-34" id="__codelineno-4-34" name="__codelineno-4-34"></a><span class="w">      </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">initApp</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-35"><a href="#__codelineno-4-35" id="__codelineno-4-35" name="__codelineno-4-35"></a><span class="w">        </span><span class="k">await</span><span class="w"> </span><span class="nx">bridge</span><span class="p">.</span><span class="nx">connect</span><span class="p">();</span>
+</span><span id="__span-4-36"><a href="#__codelineno-4-36" id="__codelineno-4-36" name="__codelineno-4-36"></a>
+</span><span id="__span-4-37"><a href="#__codelineno-4-37" id="__codelineno-4-37" name="__codelineno-4-37"></a><span class="w">        </span><span class="c1">// Call server tool to load initial layout controls</span>
+</span><span id="__span-4-38"><a href="#__codelineno-4-38" id="__codelineno-4-38" name="__codelineno-4-38"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">bridge</span><span class="p">.</span><span class="nx">callServerTool</span><span class="p">({</span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">'fetch_controls'</span><span class="p">,</span><span class="w"> </span><span class="nx">arguments</span><span class="o">:</span><span class="w"> </span><span class="p">{}});</span>
+</span><span id="__span-4-39"><a href="#__codelineno-4-39" id="__codelineno-4-39" name="__codelineno-4-39"></a><span class="w">        </span><span class="nx">processA2UIResponse</span><span class="p">(</span><span class="nx">result</span><span class="p">);</span>
+</span><span id="__span-4-40"><a href="#__codelineno-4-40" id="__codelineno-4-40" name="__codelineno-4-40"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-4-41"><a href="#__codelineno-4-41" id="__codelineno-4-41" name="__codelineno-4-41"></a>
+</span><span id="__span-4-42"><a href="#__codelineno-4-42" id="__codelineno-4-42" name="__codelineno-4-42"></a><span class="w">      </span><span class="c1">// 2. Handle interactive User Actions routed by the A2UI SDK</span>
+</span><span id="__span-4-43"><a href="#__codelineno-4-43" id="__codelineno-4-43" name="__codelineno-4-43"></a><span class="w">      </span><span class="nb">window</span><span class="p">.</span><span class="nx">a2uiProcessor</span><span class="p">.</span><span class="nx">events</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="k">async</span><span class="w"> </span><span class="nx">event</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-44"><a href="#__codelineno-4-44" id="__codelineno-4-44" name="__codelineno-4-44"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">event</span><span class="p">.</span><span class="nx">message</span><span class="p">.</span><span class="nx">userAction</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+</span><span id="__span-4-45"><a href="#__codelineno-4-45" id="__codelineno-4-45" name="__codelineno-4-45"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">event</span><span class="p">.</span><span class="nx">message</span><span class="p">.</span><span class="nx">userAction</span><span class="p">;</span>
+</span><span id="__span-4-46"><a href="#__codelineno-4-46" id="__codelineno-4-46" name="__codelineno-4-46"></a>
+</span><span id="__span-4-47"><a href="#__codelineno-4-47" id="__codelineno-4-47" name="__codelineno-4-47"></a><span class="w">        </span><span class="c1">// Route the user action directly via the bridge to the MCP Server tool</span>
+</span><span id="__span-4-48"><a href="#__codelineno-4-48" id="__codelineno-4-48" name="__codelineno-4-48"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">bridge</span><span class="p">.</span><span class="nx">callServerTool</span><span class="p">({</span>
+</span><span id="__span-4-49"><a href="#__codelineno-4-49" id="__codelineno-4-49" name="__codelineno-4-49"></a><span class="w">          </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="nx">action</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+</span><span id="__span-4-50"><a href="#__codelineno-4-50" id="__codelineno-4-50" name="__codelineno-4-50"></a><span class="w">          </span><span class="nx">arguments</span><span class="o">:</span><span class="w"> </span><span class="nx">action</span><span class="p">.</span><span class="nx">context</span><span class="p">,</span>
+</span><span id="__span-4-51"><a href="#__codelineno-4-51" id="__codelineno-4-51" name="__codelineno-4-51"></a><span class="w">        </span><span class="p">});</span>
+</span><span id="__span-4-52"><a href="#__codelineno-4-52" id="__codelineno-4-52" name="__codelineno-4-52"></a>
+</span><span id="__span-4-53"><a href="#__codelineno-4-53" id="__codelineno-4-53" name="__codelineno-4-53"></a><span class="w">        </span><span class="c1">// Feed any updated server UI states back to the A2UI processor</span>
+</span><span id="__span-4-54"><a href="#__codelineno-4-54" id="__codelineno-4-54" name="__codelineno-4-54"></a><span class="w">        </span><span class="nx">processA2UIResponse</span><span class="p">(</span><span class="nx">result</span><span class="p">);</span>
+</span><span id="__span-4-55"><a href="#__codelineno-4-55" id="__codelineno-4-55" name="__codelineno-4-55"></a><span class="w">      </span><span class="p">});</span>
+</span><span id="__span-4-56"><a href="#__codelineno-4-56" id="__codelineno-4-56" name="__codelineno-4-56"></a>
+</span><span id="__span-4-57"><a href="#__codelineno-4-57" id="__codelineno-4-57" name="__codelineno-4-57"></a><span class="w">      </span><span class="c1">// Initialize the app on startup</span>
+</span><span id="__span-4-58"><a href="#__codelineno-4-58" id="__codelineno-4-58" name="__codelineno-4-58"></a><span class="w">      </span><span class="nx">initApp</span><span class="p">();</span>
+</span><span id="__span-4-59"><a href="#__codelineno-4-59" id="__codelineno-4-59" name="__codelineno-4-59"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-4-60"><a href="#__codelineno-4-60" id="__codelineno-4-60" name="__codelineno-4-60"></a>  <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</span><span id="__span-4-61"><a href="#__codelineno-4-61" id="__codelineno-4-61" name="__codelineno-4-61"></a><span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></code></pre></div>
 <h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">¶</a></h2>
 <ul>
 <li><strong>Explicit Target Origin</strong>: Always use specific target origins (e.g., <code>'https://trusted-host.com'</code>) instead of <code>*</code> when calling <code>postMessage</code> if the host origin is known. This prevents malicious iframes from intercepting your RPC requests.</li>
