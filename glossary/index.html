@@ -966,10 +966,12 @@
 <p>The A2UI protocol enables conversation between <strong>agent</strong> and <strong>renderer</strong>:</p>
 <ol>
 <li><strong>Renderer</strong> provides <strong>UI capabilities</strong> in the form of A2UI catalog and <strong>instructions</strong> on how to use it.</li>
-<li><strong>Agent</strong> iterates on the loop:</li>
+<li><strong>Agent</strong> iterates on the loop:<ul>
 <li>Provides <strong>UI</strong> and <strong>functions</strong> to call, taking into account the received catalog</li>
 <li>Receives <strong>user input</strong>, communicated by renderer</li>
 <li>Updates <strong>data</strong> to show in UI</li>
+</ul>
+</li>
 </ol>
 <p><img alt="agent and renderer" src="../assets/agent-and-renderer.png"/></p>
 <p>While the protocol is designed for <strong>AI-empowered agents</strong>, it can work with deterministic agents as well. For example, an agent may return a pre-canned A2UI UI.</p>
@@ -979,21 +981,25 @@
 <p>UI component, allowed for use by agent. Examples: date picker, carousel, button, hotel selector.</p>
 <h3 id="catalog">Catalog<a class="headerlink" href="#catalog" title="Permanent link">¶</a></h3>
 <ol>
-<li>Itemized renderer capabilities:</li>
+<li>Itemized renderer capabilities:<ul>
 <li>List of components that the agent can use to generate UI</li>
 <li>List of functions that can be invoked by renderer</li>
 <li>Styles and themes</li>
+</ul>
+</li>
 <li>Explanation on how the renderer capabilities should be used.</li>
 </ol>
 <p>It is observed that depending on use case, catalog components may be more or less specific to domain:</p>
 <ul>
-<li><strong>Less specific</strong>:</li>
-</ul>
+<li>
+<p><strong>Less specific</strong>:</p>
 <p>Basic UI primitives like buttons, labels, rows, columns, option-selectors and so on.</p>
-<ul>
-<li><strong>More specific</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>More specific</strong>:</p>
 <p>Components like HotelCheckout or FlightSelector.</p>
+</li>
+</ul>
 <h3 id="basic-catalog">Basic Catalog<a class="headerlink" href="#basic-catalog" title="Permanent link">¶</a></h3>
 <p>A catalog maintained by the A2UI team to get up and running quickly with A2UI.</p>
 <p>See the <a href="https://github.com/google/A2UI/blob/main/specification/v0_10/json/basic_catalog.json">basic catalog</a>.</p>
@@ -1003,55 +1009,59 @@ which consists of a number of components. Surfaces cannot nest.</p>
 <h3 id="agent-architecture">Agent architecture<a class="headerlink" href="#agent-architecture" title="Permanent link">¶</a></h3>
 <p>There are options for A2UI agent:</p>
 <ul>
-<li><strong>Same-process or server-side</strong>:</li>
-</ul>
+<li>
+<p><strong>Same-process or server-side</strong>:</p>
 <p>Agent and renderer may reside in one process of a client side application. Example: desktop Flutter application.</p>
 <p>Or, renderer may reside on the box that displays UI, and agent may reside on another box (server).</p>
-<ul>
-<li><strong>Orchestrator agent</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Orchestrator agent</strong>:</p>
 <p>The central orchestrator manages interactions between a user and several specialized sub-agents. The orchestrator can be in the same process or on the server.</p>
-<ul>
-<li><strong>Pulling / pushing</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Pulling / pushing</strong>:</p>
 <p>An agent can wait for messages/requests from the renderer, or push messages/requests to it.</p>
-<ul>
-<li><strong>Stateful / stateless</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Stateful / stateless</strong>:</p>
 <p>Agents can preserve state or be stateless.</p>
-<ul>
-<li><strong>Mixed with other protocols</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Mixed with other protocols</strong>:</p>
 <p>A2UI can be used in combination with other protocols. For example, an agent may be an MCP and/or A2A server.</p>
-<ul>
-<li><strong>Something else</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Something else</strong>:</p>
 <p>In addition to the above options, there is possibility for any custom variation.</p>
+</li>
+</ul>
 <h3 id="renderer-stack">Renderer stack<a class="headerlink" href="#renderer-stack" title="Permanent link">¶</a></h3>
 <p>Functionality of A2UI renderer consists of layers that can be developed separately and reused:</p>
 <ul>
-<li><strong>Core Library</strong>:</li>
-</ul>
+<li>
+<p><strong>Core Library</strong>:</p>
 <p>Set of primitives, needed to describe catalog and to interact with the agent.</p>
 <p>For example, see the <a href="https://github.com/google/A2UI/blob/main/renderers/web_core/README.md">JavaScript web core library</a>.</p>
-<ul>
-<li><strong>Catalog Schema</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Catalog Schema</strong>:</p>
 <p>Definition of catalog in the form of JSON.</p>
 <p>For example, see the <a href="https://github.com/google/A2UI/blob/main/specification/v0_10/json/basic_catalog.json">basic catalog schema</a>.</p>
-<ul>
-<li><strong>Framework adapter</strong>:<a id="fw-adapter"></a></li>
-</ul>
+</li>
+<li>
+<p><strong>Framework adapter</strong>:<a id="fw-adapter"></a></p>
 <p>Code that implements the execution of the agent’s instructions in a concrete framework. For example:
-  - JavaScript core and catalogs may be adapted to Angular, Electron, React and Lit frameworks.
-  - Dart core and catalogs may be adapted to Flutter and Jaspr frameworks.</p>
+- JavaScript core and catalogs may be adapted to Angular, Electron, React and Lit frameworks.
+- Dart core and catalogs may be adapted to Flutter and Jaspr frameworks.</p>
 <p>See the <a href="https://github.com/google/A2UI/blob/main/renderers/angular/README.md">Angular adapter</a>.</p>
-<ul>
-<li><strong>Catalog Implementation</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Catalog Implementation</strong>:</p>
 <p>Implementation of the catalog schema for a framework.</p>
 <p>For example:
-  - See the <a href="https://github.com/google/A2UI/blob/main/renderers/angular/src/v0_9/catalog/basic">Angular implementation of the basic catalog</a></p>
+- See the <a href="https://github.com/google/A2UI/blob/main/renderers/angular/src/v0_9/catalog/basic">Angular implementation of the basic catalog</a></p>
+</li>
+</ul>
 <pre class="mermaid"><code>flowchart TD;
 cimpl("Catalog&lt;br&gt;Implementation")--&gt;cschema("Catalog&lt;br&gt;Schema");
 cschema--&gt;core("Core&lt;br&gt;Library");
@@ -1122,21 +1132,23 @@ fadapter--&gt;core;</code></pre>
 <p>Terms, not required by A2UI protocol, but commonly used in the context of generative UI.</p>
 <h3 id="known-patterns-of-genui">Known patterns of GenUI<a class="headerlink" href="#known-patterns-of-genui" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Chat</strong>:</li>
-</ul>
+<li>
+<p><strong>Chat</strong>:</p>
 <p>Pieces of generated UI appear one by one, sorted by time, in a vertically scrollable area, mixed with user input.</p>
-<ul>
-<li><strong>Canvas</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Canvas</strong>:</p>
 <p>Space for collaboration with an agent.</p>
-<ul>
-<li><strong>Dashboard</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Dashboard</strong>:</p>
 <p>Pieces of generated UI are organized not by time, but by their meaning and stay reliably (a.k.a. pinned) where the user expects to see them.</p>
-<ul>
-<li><strong>Wizard</strong>:</li>
-</ul>
+</li>
+<li>
+<p><strong>Wizard</strong>:</p>
 <p>Pieces of generated UI are shown one by one, with the goal to collect necessary information for a certain task.</p>
+</li>
+</ul>
 <h3 id="noai-information">NoAI information<a class="headerlink" href="#noai-information" title="Permanent link">¶</a></h3>
 <p>Information, categorized as <strong>not accessible by AI</strong> (for example, credit card information).</p>
 <p>Which information should not be accessible by AI is defined by owners of the application and it is <strong>different in different contexts</strong>. For example, in some contexts medical history should never go to AI, while in others AI is heavily used to help with medical diagnostics and thus needs medical history.</p>

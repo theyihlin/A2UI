@@ -2388,48 +2388,64 @@
 <ul>
 <li><strong>JSONL Stream Parsing</strong>: Implement a parser that can read a streaming response line by line, decoding each line as a distinct JSON object.</li>
 <li><strong>Message Dispatcher</strong>: Create a dispatcher to identify the message type (<code>beginRendering</code>, <code>surfaceUpdate</code>, <code>dataModelUpdate</code>, <code>deleteSurface</code>) and route it to the correct handler.</li>
-<li><strong>Surface Management</strong>:</li>
+<li><strong>Surface Management</strong>:<ul>
 <li>Implement a data structure to manage multiple UI surfaces, each keyed by its <code>surfaceId</code>.</li>
 <li>Handle <code>surfaceUpdate</code>: Add or update components in the specified surface's component buffer.</li>
 <li>Handle <code>deleteSurface</code>: Remove the specified surface and all its associated data and components.</li>
-<li><strong>Component Buffering (Adjacency List)</strong>:</li>
+</ul>
+</li>
+<li><strong>Component Buffering (Adjacency List)</strong>:<ul>
 <li>For each surface, maintain a component buffer (e.g., a <code>Map&lt;String, Component&gt;</code>) to store all component definitions by their <code>id</code>.</li>
 <li>Be able to reconstruct the UI tree at render time by resolving <code>id</code> references in container components (<code>children.explicitList</code>, <code>child</code>, <code>contentChild</code>, etc.).</li>
-<li><strong>Data Model Store</strong>:</li>
+</ul>
+</li>
+<li><strong>Data Model Store</strong>:<ul>
 <li>For each surface, maintain a separate data model store (e.g., a JSON object or a <code>Map&lt;String, any&gt;</code>).</li>
 <li>Handle <code>dataModelUpdate</code>: Update the data model at the specified <code>path</code>. The <code>contents</code> will be in an adjacency list format (e.g., <code>[{ "key": "name", "valueString": "Bob" }]</code>).</li>
+</ul>
+</li>
 </ul>
 <h3 id="rendering-logic">Rendering Logic<a class="headerlink" href="#rendering-logic" title="Permanent link">&para;</a></h3>
 <p>Implement the following rendering logic:</p>
 <ul>
-<li><strong>Progressive Rendering Control</strong>:</li>
+<li><strong>Progressive Rendering Control</strong>:<ul>
 <li>Buffer all incoming <code>surfaceUpdate</code> and <code>dataModelUpdate</code> messages without rendering immediately.</li>
 <li>Handle <code>beginRendering</code>: This message acts as the explicit signal to perform the initial render of a surface and set the root component ID.<ul>
 <li>Start rendering from the specified <code>root</code> component ID.</li>
-<li>If a <code>catalogId</code> is provided, ensure the corresponding component catalog is used (defaulting to the basic catalog if omitted).</li>
+<li>If a <code>catalogId</code> is provided, ensure the corresponding component catalog is used (defaulting to the standard catalog if omitted).</li>
 <li>Apply any global <code>styles</code> (e.g., <code>font</code>, <code>primaryColor</code>) provided in this message.</li>
 </ul>
 </li>
-<li><strong>Data Binding Resolution</strong>:</li>
+</ul>
+</li>
+<li><strong>Data Binding Resolution</strong>:<ul>
 <li>Implement a resolver for <code>BoundValue</code> objects found in component properties.</li>
 <li>If only a <code>literal*</code> value is present (<code>literalString</code>, <code>literalNumber</code>, etc.), use it directly.</li>
 <li>If only a <code>path</code> is present, resolve it against the surface's data model.</li>
 <li>If both <code>path</code> and <code>literal*</code> are present, first update the data model at <code>path</code> with the literal value, then bind the component property to that <code>path</code>.</li>
-<li><strong>Dynamic List Rendering</strong>:</li>
+</ul>
+</li>
+<li><strong>Dynamic List Rendering</strong>:<ul>
 <li>For containers with a <code>children.template</code>, iterate over the data list found at <code>template.dataBinding</code> (which resolves to a list in the data model).</li>
 <li>For each item in the data list, render the component specified by <code>template.componentId</code>, making the item's data available for relative data binding within the template.</li>
+</ul>
+</li>
 </ul>
 <h3 id="client-to-server-communication">Client-to-Server Communication<a class="headerlink" href="#client-to-server-communication" title="Permanent link">&para;</a></h3>
 <p>Implement the following communication features:</p>
 <ul>
-<li><strong>Event Handling</strong>:</li>
+<li><strong>Event Handling</strong>:<ul>
 <li>When a user interacts with a component that has an <code>action</code> defined, construct a <code>userAction</code> payload.</li>
 <li>Resolve all data bindings within the <code>action.context</code> against the data model.</li>
 <li>Send the complete <code>userAction</code> object to the server's event handling endpoint.</li>
-<li><strong>Client Capabilities Reporting</strong>:</li>
+</ul>
+</li>
+<li><strong>Client Capabilities Reporting</strong>:<ul>
 <li>In <strong>every</strong> A2A message sent to the server (as part of the metadata), include an <code>a2uiClientCapabilities</code> object.</li>
-<li>This object should declare the component catalog your client supports via <code>supportedCatalogIds</code> (e.g., including the URI for the basic 0.8 catalog).</li>
+<li>This object should declare the component catalog your client supports via <code>supportedCatalogIds</code> (e.g., including the URI for the standard 0.8 catalog).</li>
 <li>Optionally, if the server supports it, provide <code>inlineCatalogs</code> for custom, on-the-fly component definitions.</li>
+</ul>
+</li>
 <li><strong>Error Reporting</strong>: Implement a mechanism to send an <code>error</code> message to the server to report any client-side errors (e.g., failed data binding, unknown component type).</li>
 </ul>
 <h2 id="ii-basic-component-catalog-checklist">II. Basic Component Catalog Checklist<a class="headerlink" href="#ii-basic-component-catalog-checklist" title="Permanent link">&para;</a></h2>

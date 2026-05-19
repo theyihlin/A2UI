@@ -2135,25 +2135,25 @@
 </ol>
 <h2 id="implementation-guide">Implementation Guide<a class="headerlink" href="#implementation-guide" title="Permanent link">&para;</a></h2>
 <p>It is recommended to create catalogs that directly map to your existing component library.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="web-lit--angular--react" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="web-lit--angular--react">Web (Lit / Angular / React)</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="web-lit--angular--react" name="__tabbed_1" type="radio" /><input id="flutter" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="web-lit--angular--react">Web (Lit / Angular / React)</label><label for="flutter">Flutter</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p>To implement your own catalog on the web:
--   Create a JSON Schema containing your component definitions.</p>
-</div>
-</div>
-</div>
+<p>To implement your own catalog on the web:</p>
 <ul>
-<li>Create your own <code>Component</code> objects and <code>Catalog</code> object within your chosen web renderer.</li>
+<li>Create a JSON Schema containing your component definitions.</li>
+<li>Create your own <code>Component</code> objects and <code>Catalog</code> object within your chosen web renderer.<ul>
 <li>Provide the schema or reference ID to the agent.</li>
 </ul>
+</li>
+</ul>
 <p><em>Detailed guides for each framework coming soon.</em></p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="flutter" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="flutter">Flutter</label></div>
-<div class="tabbed-content">
+</div>
 <div class="tabbed-block">
-<p>To implement your own catalog in Flutter:
--   Define a JSON Schema describing your widget properties.
--   Map the schema to Flutter widgets using a custom renderer.</p>
+<p>To implement your own catalog in Flutter:</p>
+<ul>
+<li>Define a JSON Schema describing your widget properties.</li>
+<li>Map the schema to Flutter widgets using a custom renderer.</li>
+</ul>
 <p><em>Detailed Flutter integration guide coming soon.</em></p>
 </div>
 </div>

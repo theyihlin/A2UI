@@ -1235,11 +1235,13 @@ flowchart TD
 <p>If your project uses Vite (common for React, Vue, or Lit), you can achieve the same single-file output automatically using plugins like <code>vite-plugin-singlefile</code>. This eliminates the need for a custom post-build script by handling the inlining during the build process itself.</p>
 <p><strong>How to use it:</strong></p>
 <ol>
-<li><strong>Install the plugin</strong>:
-   <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>npm<span class="w"> </span>install<span class="w"> </span>-D<span class="w"> </span>vite-plugin-singlefile
-</span></code></pre></div></li>
-<li><strong>Configure Vite</strong>: Add the plugin to your <code>vite.config.ts</code> (or <code>.js</code>):</li>
-</ol>
+<li>
+<p><strong>Install the plugin</strong>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a>npm<span class="w"> </span>install<span class="w"> </span>-D<span class="w"> </span>vite-plugin-singlefile
+</span></code></pre></div>
+</li>
+<li>
+<p><strong>Configure Vite</strong>: Add the plugin to your <code>vite.config.ts</code> (or <code>.js</code>):</p>
 <div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">defineConfig</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'vite'</span><span class="p">;</span>
 </span><span id="__span-1-2"><a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="nx">viteSingleFile</span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">'vite-plugin-singlefile'</span><span class="p">;</span>
 </span><span id="__span-1-3"><a href="#__codelineno-1-3" id="__codelineno-1-3" name="__codelineno-1-3"></a>
@@ -1248,6 +1250,8 @@ flowchart TD
 </span><span id="__span-1-6"><a href="#__codelineno-1-6" id="__codelineno-1-6" name="__codelineno-1-6"></a><span class="p">});</span>
 </span></code></pre></div>
 <p>This will ensure that all JS and CSS assets are inlined into the <code>index.html</code> file on build, making it ready to be served by your MCP server as a single resource.</p>
+</li>
+</ol>
 </div>
 <h3 id="step-2-leveraging-a2ui-over-mcp">Step 2: Leveraging A2UI-over-MCP<a class="headerlink" href="#step-2-leveraging-a2ui-over-mcp" title="Permanent link">¶</a></h3>
 <p>Your inlined app is now running in the sandbox. To leverage A2UI:</p>
