@@ -59,11 +59,51 @@ const DataValueMapItemSchema: z.ZodType<any> = z.lazy(() =>
       if (count !== 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Value map item must have at least one value property (valueString, valueNumber, valueBoolean, valueMap), found ${count}.`,
+          message: `Value map item must have exactly one value property (valueString, valueNumber, valueBoolean, valueMap), found ${count}.`,
         });
       }
     }),
 );
+
+export const DataValueSchema = z
+  .object({
+    key: z.string(),
+    valueString: z.string().optional(),
+    valueNumber: z.number().optional(),
+    valueBoolean: z.boolean().optional(),
+    valueMap: z.array(DataValueMapItemSchema).optional(),
+  })
+  .strict()
+  .superRefine((val: any, ctx: z.RefinementCtx) => {
+    let count = 0;
+    if (val.valueString !== undefined) count++;
+    if (val.valueNumber !== undefined) count++;
+    if (val.valueBoolean !== undefined) count++;
+    if (val.valueMap !== undefined) count++;
+    if (count !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Value must have exactly one value property (valueString, valueNumber, valueBoolean, valueMap), found ${count}.`,
+      });
+    }
+  })
+  .superRefine((val: any, ctx: z.RefinementCtx) => {
+    const checkDepth = (v: any, currentDepth: number) => {
+      if (currentDepth > 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'valueMap recursion exceeded maximum depth of 5.',
+        });
+        return;
+      }
+      if (v.valueMap && Array.isArray(v.valueMap)) {
+        for (const item of v.valueMap) {
+          checkDepth(item, currentDepth + 1);
+        }
+      }
+    };
+    checkDepth(val, 1);
+  });
 
 export function createDataValueSchema(options: {maxDepth?: number} = {}) {
   const maxDepth = options.maxDepth ?? 5;
@@ -85,8 +125,6 @@ export function createDataValueSchema(options: {maxDepth?: number} = {}) {
     checkDepth(val, 1);
   });
 }
-
-export const DataValueSchema = createDataValueSchema();
 
 export const NumberValueSchema = z
   .object({
@@ -129,7 +167,7 @@ export const ActionSchema = z.object({
             literalNumber: z.number().optional(),
             literalBoolean: z.boolean().optional(),
           })
-          .describe('The dynamic value. Define EXACTLY ONE of the nested properties.')
+          .describe('The dynamic value. Define at least one of the nested properties.')
           .strict()
           .superRefine(atLeastOneKey),
       }),
